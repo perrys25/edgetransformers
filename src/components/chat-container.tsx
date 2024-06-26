@@ -28,6 +28,9 @@ export default function ChatContainer() {
                 role: message.role === "user" ? "assistant" : "user",
               });
             }}
+            textChange={(text) => {
+              updateMessage(message.uuid, { content: text });
+            }}
           />
         ))}
       </div>
