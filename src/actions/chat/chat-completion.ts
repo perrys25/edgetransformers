@@ -4,7 +4,7 @@ import { getRequestContext } from "@cloudflare/next-on-pages";
 import { RoleScopedChatInput } from "@cloudflare/workers-types/2023-07-01/index";
 
 export async function chatCompletion(
-  model: BaseAiTextGenerationModels,
+  model: BaseAiTextGenerationModels | undefined,
   prompt: RoleScopedChatInput[],
 ) {
   const context = getRequestContext();
