@@ -1,11 +1,12 @@
 import Prism from "prismjs";
-import "prismjs/components/prism-markdown";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { BaseRange, createEditor, Descendant, NodeEntry, Text } from "slate";
 import { Slate, Editable, withReact, RenderLeafProps } from "slate-react";
 import markdown from "remark-parse";
 import slate, { LeafType, serialize } from "remark-slate";
 import { unified } from "unified";
+
+import "prismjs/components/prism-markdown";
 
 export default function TextEditor({
   initialValue,
@@ -18,14 +19,24 @@ export default function TextEditor({
   const [value, setValue] = useState<Descendant[]>(
     markdownToSlate(initialValue),
   );
+
+  useEffect(() => {
+    const { insertSoftBreak } = editor;
+
+    editor.insertBreak = () => {
+      insertSoftBreak();
+      return;
+    };
+  }, []);
+
   const renderLeaf = useCallback(
+    // @ts-ignore
     (props: RenderLeafProps) => <Leaf {...props} />,
     [],
   );
 
   const handleChange = useCallback(
     (nextValue: Descendant[]) => {
-      console.log(nextValue);
       setValue(nextValue);
       onChange(value.map((v) => serialize(v as LeafType)).join(""));
     },
@@ -33,6 +44,7 @@ export default function TextEditor({
   );
 
   const decorate = useCallback(([node, path]: NodeEntry): BaseRange[] => {
+    console.log(path);
     const ranges: BaseRange[] = [];
 
     if (!Text.isText(node)) {
@@ -58,6 +70,8 @@ export default function TextEditor({
     for (const token of tokens) {
       const length = getLength(token);
       const end = start + length;
+
+      // console.log(token);
 
       if (typeof token !== "string") {
         ranges.push({
@@ -94,9 +108,13 @@ const Leaf = ({
   attributes,
   children,
   leaf,
-}: RenderLeafProps & { leaf: LeafType }) => {
+}: { leaf: LeafType & { [key: string]: boolean } } & RenderLeafProps) => {
+  // console.log(leaf);
   return (
-    <span {...attributes} className={`${leaf.bold ? "font-bold" : ""}`}>
+    <span
+      {...attributes}
+      className={` ${leaf.bold ? "font-bold" : ""} ${leaf["code-snippet"] ? "rounded-md bg-gray-400" : ""} ${leaf.italic ? "italic" : ""} ${leaf.strikeThrough ? "line-through" : ""} ${leaf["punctuation"] ? "opacity-20" : ""}`}
+    >
       {children}
     </span>
   );

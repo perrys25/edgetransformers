@@ -7,13 +7,13 @@ export default function ChatContainer() {
       {
         role: "user",
         content:
-          "**Hello, World!** Hello, World! Hello, World! Hello, World! Hello, World!",
+          "Hello, World! Hello, World! Hello, World! Hello, World! Hello, World!",
       },
-      {
-        role: "assistant",
-        content:
-          "Hello, User! Hello, User! Hello, User! Hello, User! Hello, User!",
-      },
+      // {
+      //   role: "assistant",
+      //   content:
+      //     "Hello, User! Hello, User! Hello, User! Hello, User! Hello, User!",
+      // },
     ]);
   return (
     <div className="w-96 rounded-xl bg-gray-100 p-4 shadow-lg">
