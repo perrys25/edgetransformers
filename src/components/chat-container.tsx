@@ -14,7 +14,7 @@ export default function ChatContainer() {
       },
     ]);
   return (
-    <div className="w-sm flex flex-col rounded-xl bg-gray-100 p-4 shadow-lg">
+    <div className="w-md flex flex-col rounded-xl bg-gray-100 p-4 shadow-lg">
       <div className="row-auto grid grid-flow-dense grid-cols-chat gap-y-1 py-1">
         {messages.map((message) => (
           <Message
