@@ -19,12 +19,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-markdown": "^9.0.1",
-    "remark": "^15.0.1",
-    "remark-parse": "^11.0.0",
-    "remark-slate": "^1.8.6",
     "slate": "^0.103.0",
-    "slate-react": "^0.106.0",
-    "unified": "^11.0.5"
+    "slate-react": "^0.106.0"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.12.0",

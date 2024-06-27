@@ -1,10 +1,14 @@
 import Prism from "prismjs";
 import React, { useCallback, useEffect, useState } from "react";
-import { BaseRange, createEditor, Descendant, NodeEntry, Text } from "slate";
+import {
+  BaseRange,
+  createEditor,
+  Descendant,
+  Node,
+  NodeEntry,
+  Text,
+} from "slate";
 import { Slate, Editable, withReact, RenderLeafProps } from "slate-react";
-import markdown from "remark-parse";
-import slate, { LeafType, serialize } from "remark-slate";
-import { unified } from "unified";
 import "prismjs/components/prism-markdown";
 
 export default function TextEditor({
@@ -36,9 +40,8 @@ export default function TextEditor({
 
   const handleChange = useCallback(
     (nextValue: Descendant[]) => {
-      console.clear();
       setValue(nextValue);
-      onChange(value.map((v) => serialize(v as LeafType)).join(""));
+      onChange(nextValue.map((n) => Node.string(n)).join("\n"));
     },
     [onChange],
   );
@@ -46,7 +49,6 @@ export default function TextEditor({
   const decorate = useCallback(([node, path]: NodeEntry): BaseRange[] => {
     const ranges: BaseRange[] = [];
     let start = 0;
-    let tokens: (string | Prism.Token)[] = [];
 
     function findPosition(
       strings: string[],
@@ -94,42 +96,54 @@ export default function TextEditor({
       }
     };
 
-    tokens = Prism.tokenize(getText(node), Prism.languages.markdown);
-    for (const token of tokens) {
-      const length = getLength(token);
-      const end = start + length;
-      if (typeof token !== "string") {
-        // console.log(token, start, end);
-        // console.log(JSON.stringify(node));
-        if (path.length > 0) {
-          // continue;
-          ranges.push({
-            [token.type]: true,
-            anchor: { path: path, offset: start },
-            focus: { path: path, offset: end },
-          });
-        } else {
-          const strings = ((node as any).children as NodeEntry[0][]).map(
-            getText,
-          );
-          const pos1 = findPosition(strings, start, true);
-          const pos2 = findPosition(strings, end, false);
-          ranges.push({
-            [token.type]: true,
-            anchor: { path: [pos1.stringIndex], offset: pos1.charIndex },
-            focus: { path: [pos2.stringIndex], offset: pos2.charIndex },
-          });
-        }
-      }
+    const tokens = Prism.tokenize(getText(node), Prism.languages.markdown);
 
-      start = end;
-    }
+    const addTokens = (tokens: (string | Prism.Token)[]) => {
+      const nextTokens: (string | Prism.Token)[] = [];
+      for (const token of tokens) {
+        const length = getLength(token);
+        const end = start + length;
+        if (typeof token !== "string") {
+          if (token.content) {
+            if (Array.isArray(token.content)) {
+              nextTokens.push(...token.content);
+            } else {
+              nextTokens.push(token.content);
+            }
+          }
+          if (path.length > 0) {
+            // continue;
+            ranges.push({
+              [token.type]: true,
+              anchor: { path: path, offset: start },
+              focus: { path: path, offset: end },
+            });
+          } else {
+            const strings = ((node as any).children as NodeEntry[0][]).map(
+              getText,
+            );
+            const pos1 = findPosition(strings, start, true);
+            const pos2 = findPosition(strings, end, false);
+            ranges.push({
+              [token.type]: true,
+              anchor: { path: [pos1.stringIndex], offset: pos1.charIndex },
+              focus: { path: [pos2.stringIndex], offset: pos2.charIndex },
+            });
+          }
+        }
+
+        start = end;
+      }
+      // nextTokens.length > 0 && addTokens(nextTokens);
+    };
+    addTokens(tokens);
     return ranges;
   }, []);
 
   return (
     <Slate editor={editor} initialValue={value} onChange={handleChange}>
       <Editable
+        className="focus:outline-none active:outline-none"
         renderLeaf={renderLeaf}
         decorate={decorate}
         placeholder="Markdown..."
@@ -139,32 +153,41 @@ export default function TextEditor({
 }
 
 function markdownToSlate(md: string): Descendant[] {
-  const out = unified().use(markdown).use(slate).processSync(md)
-    .result as LeafType[];
-  return out;
+  return md.split("\n").map((line) => {
+    return { type: "paragraph", children: [{ text: line }] };
+  });
 }
 
 const Leaf = ({
   attributes,
   children,
   leaf,
-}: { leaf: LeafType & { [key: string]: boolean } } & RenderLeafProps) => {
+}: { leaf: { [key: string]: boolean } } & RenderLeafProps) => {
   const leaves = Object.keys(leaf).filter((k) => k !== "text");
-  if (leaves.length > 0) {
-    // console.log(leaves);
-  }
-  if (leaf["code"]) {
+  const styles: { [key: string]: string } = {
+    bold: "font-bold",
+    italic: "italic",
+    underline: "underline",
+    "line-through": "line-through",
+    "code-snippet": "font-mono bg-gray-300 p-1 rounded-md",
+    code: "font-mono bg-gray-300 p-1 w-full flex flex-row",
+    punctuation: "text-gray-500",
+    title: "text-2xl font-bold",
+    blockquote: "border-l-4 border-gray-500 pl-2",
+  };
+  const classes = leaves
+    .map((l) => styles[l] ?? "")
+    .filter((s) => s !== "")
+    .join(" ");
+  if (leaves.includes("code")) {
     return (
-      <span {...attributes} className={`rounded-md bg-red-200 p-1 font-mono`}>
+      <div {...attributes} className={classes}>
         {children}
-      </span>
+      </div>
     );
   }
   return (
-    <span
-      {...attributes}
-      className={` ${leaf.bold ? "font-bold" : ""} ${leaf["code-snippet"] ? "rounded-md bg-gray-400" : ""} ${leaf.italic ? "italic" : ""} ${leaf.strikeThrough ? "line-through" : ""} ${leaf["punctuation"] ? "opacity-20" : ""}`}
-    >
+    <span {...attributes} className={classes}>
       {children}
     </span>
   );
