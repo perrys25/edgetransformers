@@ -4,7 +4,7 @@ import { RoleScopedChatInput } from "@cloudflare/workers-types/2023-07-01/index"
 export type IdentifiedRoleMessage = RoleScopedChatInput & { uuid: string };
 
 export default function useMessageContext(
-  baseMessages: RoleScopedChatInput[] = [],
+  baseMessages: IdentifiedRoleMessage[] = [],
 ) {
   const [messages, setMessages] = useState<IdentifiedRoleMessage[]>(
     baseMessages.map(addUUID),
@@ -34,5 +34,15 @@ export default function useMessageContext(
     );
   }
 
-  return [messages, addMessage, removeMessage, updateMessage] as const;
+  function clearMessages(messages: RoleScopedChatInput[] = []) {
+    setMessages(messages.map(addUUID));
+  }
+
+  return [
+    messages,
+    addMessage,
+    removeMessage,
+    updateMessage,
+    clearMessages,
+  ] as const;
 }

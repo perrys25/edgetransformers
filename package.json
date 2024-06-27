@@ -23,7 +23,9 @@
     "react-dom": "^18",
     "react-markdown": "^9.0.1",
     "slate": "^0.103.0",
-    "slate-react": "^0.106.0"
+    "slate-react": "^0.106.0",
+    "tailwindcss-animation-delay": "^1.2.0",
+    "use-local-storage": "^3.0.0"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.12.0",

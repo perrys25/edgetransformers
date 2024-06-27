@@ -13,14 +13,14 @@ export default function Message(
   },
 ) {
   return (
-    <>
+    <div className="flex flex-row rounded-lg bg-gray-200">
       <RoleIcon role={props.role} changeRole={props.changeRole} />
       <MessageText
         del={props.delete}
         text={props.content}
         setText={props.textChange}
       />
-    </>
+    </div>
   );
 }
 
@@ -34,7 +34,7 @@ const MessageText = ({
   del: () => void;
 }) => {
   return (
-    <div className="flex w-full flex-row rounded-r-lg bg-gray-200 px-2 py-4 pl-0">
+    <div className="flex w-full flex-row px-2 py-4 pl-0">
       <div className="grow">
         <TextEditor onChange={setText} initialValue={text} />
       </div>

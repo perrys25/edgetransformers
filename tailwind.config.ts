@@ -7,12 +7,17 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {
-      gridTemplateColumns: {
-        chat: "7rem minmax(0, 1fr)",
+    animation: {
+      bounce: "bounce 1s infinite",
+    },
+    keyframes: {
+      bounce: {
+        "0%, 100%": { transform: "translateY(6px)" },
+        "50%": { transform: "translateY(-6px)" },
       },
     },
+    extend: {},
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animation-delay")],
 };
 export default config;

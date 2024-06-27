@@ -174,7 +174,15 @@ const Leaf = ({
     punctuation: "text-gray-500",
     title: "text-2xl font-bold",
     blockquote: "border-l-4 border-gray-500 pl-2",
+    strike: "line-through",
+    url: "text-blue-500",
+    list: "list-disc ml-4",
+    table: "border-collapse border border-gray-300 w-full text-left",
   };
+  const missingStyles = leaves.filter((l) => !Object.keys(styles).includes(l));
+  if (missingStyles.length > 0) {
+    console.warn(`Missing styles: ${missingStyles.join(", ")}`);
+  }
   const classes = leaves
     .map((l) => styles[l] ?? "")
     .filter((s) => s !== "")
