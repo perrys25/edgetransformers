@@ -8,12 +8,12 @@ export async function chatCompletion(
   prompt: RoleScopedChatInput[],
 ) {
   const context = getRequestContext();
-
+  console.log("prompt", prompt);
   const response = (
     (await context.env.AI.run(model ?? "@hf/google/gemma-7b-it", {
       messages: prompt,
     })) as { response: string }
   ).response;
-
+  console.log("response", response);
   return response;
 }
