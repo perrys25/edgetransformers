@@ -42,6 +42,7 @@ export default function useMessageContext(
     messages,
     addMessage,
     removeMessage,
+    setMessages,
     updateMessage,
     clearMessages,
   ] as const;

@@ -11,6 +11,13 @@ import { chatCompletion } from "@/actions/chat/chat-completion";
 import RoleIcon from "@/components/chat/role-icon";
 import useLocalStorage from "use-local-storage";
 import { RoleScopedChatInput } from "@cloudflare/workers-types/2023-07-01/index";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+  ResponderProvided,
+} from "@hello-pangea/dnd";
 
 const defaultMessages: RoleScopedChatInput[] = [
   {
@@ -31,8 +38,14 @@ export default function ChatContainer() {
     "messages",
     JSON.stringify(defaultMessages),
   );
-  const [messages, addMessage, removeMessage, updateMessage, clearMessages] =
-    useMessageContext([]);
+  const [
+    messages,
+    addMessage,
+    removeMessage,
+    setMessages,
+    updateMessage,
+    clearMessages,
+  ] = useMessageContext([]);
   const [waiting, setWaiting] = React.useState(false);
 
   useEffect(() => {
@@ -43,36 +56,88 @@ export default function ChatContainer() {
     setStored(JSON.stringify(messages));
   }, [messages]);
 
+  function onDragEnd(result: DropResult, provided: ResponderProvided): void {
+    // dropped outside the list
+    if (!result.destination) {
+      return;
+    }
+
+    function reorder<K>(list: K[], startIndex: number, endIndex: number) {
+      const result = Array.from(list);
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+
+      return result;
+    }
+
+    const items = reorder(
+      messages,
+      result.source.index,
+      result.destination.index,
+    );
+
+    setMessages(items);
+  }
+
   return (
     <div className="flex w-screen max-w-screen-lg flex-col rounded-xl bg-gray-100 p-4 shadow-lg">
-      <div className="row-auto flex flex-col gap-y-1 py-1">
-        {messages.map((message) => (
-          <Message
-            role={message.role}
-            content={message.content}
-            key={message.uuid}
-            delete={() => {
-              removeMessage(message.uuid);
-            }}
-            changeRole={() => {
-              updateMessage(message.uuid, {
-                role:
-                  message.role === "user"
-                    ? "assistant"
-                    : message.role === "system"
-                      ? "user"
-                      : "system",
-              });
-            }}
-            textChange={(text) => {
-              updateMessage(message.uuid, { content: text });
-            }}
-          />
-        ))}
+      <div className="row-auto flex flex-col py-1">
+        <DragDropContext
+          onDragEnd={onDragEnd}
+          onDragStart={(start, provided) => {
+            start.mode = "SNAP";
+          }}
+        >
+          <Droppable droppableId="droppable">
+            {(provided, snapshot) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="row-auto flex flex-col"
+              >
+                {messages.map((message, index) => (
+                  <Draggable
+                    key={message.uuid}
+                    draggableId={message.uuid}
+                    index={index}
+                    isDragDisabled={waiting}
+                  >
+                    {(provided, snapshot) => (
+                      <div ref={provided.innerRef} {...provided.draggableProps}>
+                        <Message
+                          handle={provided.dragHandleProps}
+                          role={message.role}
+                          content={message.content}
+                          delete={() => {
+                            removeMessage(message.uuid);
+                          }}
+                          changeRole={() => {
+                            updateMessage(message.uuid, {
+                              role:
+                                message.role === "user"
+                                  ? "assistant"
+                                  : message.role === "system"
+                                    ? "user"
+                                    : "system",
+                            });
+                          }}
+                          textChange={(text) => {
+                            updateMessage(message.uuid, { content: text });
+                          }}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
         {waiting && (
-          <div className="flex flex-row rounded-lg bg-gray-200">
+          <div className="mb-2 flex flex-row rounded-lg bg-gray-200">
             <RoleIcon role={"assistant"} changeRole={() => {}} />
-            <div className="mx-auto flex w-full flex-row px-2 py-7 pl-4">
+            <div className="mx-auto flex w-full flex-row px-2 py-[1.625rem] pl-4">
               <TypingIndicator />
             </div>
           </div>
@@ -120,7 +185,7 @@ export default function ChatContainer() {
 const TypingIndicator = () => (
   <div className="flex items-center space-x-2">
     <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-    <div className="typing-dot animation-delay-75 h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-    <div className="typing-dot animation-delay-150 h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+    <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-gray-400 animation-delay-75"></div>
+    <div className="typing-dot h-2 w-2 animate-bounce rounded-full bg-gray-400 animation-delay-150"></div>
   </div>
 );

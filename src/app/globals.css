@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .break-wordbreak {
+        word-break: break-word;
+    }
+}
