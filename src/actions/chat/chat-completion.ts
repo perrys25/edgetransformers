@@ -1,7 +1,11 @@
 "use server";
 
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { RoleScopedChatInput } from "@cloudflare/workers-types/2023-07-01/index";
+import {
+  ReadableStream,
+  RoleScopedChatInput,
+} from "@cloudflare/workers-types/2023-07-01/index";
+import { createStreamableValue } from "ai/rsc";
 
 export async function chatCompletion(
   model: BaseAiTextGenerationModels | undefined,
@@ -9,12 +13,20 @@ export async function chatCompletion(
 ) {
   const context = getRequestContext();
   try {
-    const response = (
-      (await context.env.AI.run(model ?? "@hf/google/gemma-7b-it", {
-        messages: prompt,
-      })) as { response: any }
-    ).response;
-    if (!response || typeof response !== "string") {
+    const run = (await context.env.AI.run(model ?? "@hf/google/gemma-7b-it", {
+      messages: prompt,
+      stream: false,
+    })) as {
+      response?: string;
+      tool_calls?: {
+        name: string;
+        arguments: unknown;
+      }[];
+    };
+
+    const response = run.response;
+
+    if (!response) {
       return null;
     }
     return response;

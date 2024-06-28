@@ -6,9 +6,7 @@ export default function Center({
 }: PropsWithChildren): React.ReactNode {
   return (
     <div className="flex h-full flex-grow flex-col">
-      <div className="flex-grow" />
-      <div className="mx-auto">{children}</div>
-      <div className="flex-grow" />
+      <div className="mx-auto flex flex-col">{children}</div>
     </div>
   );
 }

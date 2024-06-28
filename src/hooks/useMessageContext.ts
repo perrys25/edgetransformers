@@ -25,7 +25,11 @@ export default function useMessageContext(
   }
 
   function removeMessage(uuid: string) {
-    setMessages(messages.filter((message) => message.uuid !== uuid));
+    const newMessages = messages.filter((message) => message.uuid !== uuid);
+    if (newMessages.length === 0) {
+      newMessages.push(addUUID({ role: "user", content: "" }));
+    }
+    setMessages(newMessages);
   }
 
   function updateMessage(uuid: string, message: Partial<RoleScopedChatInput>) {

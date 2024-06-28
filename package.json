@@ -17,6 +17,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@hello-pangea/dnd": "^16.6.0",
     "add": "^2.0.6",
+    "ai": "^3.2.15",
     "next": "14.1.0",
     "Prism": "^2.0.0",
     "prismjs": "^1.29.0",
